@@ -9,13 +9,16 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import org.junit.jupiter.api.Test;
 
-import com.rr.eucentralbank.api.ExchangeRateTool;
+import com.rr.eucentralbank.api.Forex;
+import com.rr.eucentralbank.api.ForexImpl;
 import com.rr.eucentralbank.exception.CurrencyUnavailableException;
 
 class ExchangeRateToolTest {
@@ -54,18 +57,21 @@ class ExchangeRateToolTest {
 	 * Tests full row fetching
 	 * 
 	 * @throws IOException
+	 * @throws ParseException 
 	 */
 	@Test
-	void testFetchingRow() throws IOException {
-		ExchangeRateTool t = new ExchangeRateTool();
+	void testFetchingRow() throws IOException, ParseException {
+		Forex t = new ForexImpl();
 		t.loadDataFromInputStream(createDummyStream());
 
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
 		// Valid date
-		Map<String, Double> result = t.readDataForDate(t.parseDate("2021-10-13"));
+		Map<String, Double> result = t.readDataForDate(dateFormat.parse("2021-10-13"));
 		assertEquals(1.1562, result.get("USD"), "Expect USD=1.1562");
 
 		// Date doesn't exist
-		Map<String, Double> emptyResult = t.readDataForDate(t.parseDate("2021-10-10"));
+		Map<String, Double> emptyResult = t.readDataForDate(dateFormat.parse("2021-10-10"));
 		assertTrue(emptyResult.isEmpty(), "Expect map to be empty");
 	}
 
@@ -74,24 +80,27 @@ class ExchangeRateToolTest {
 	 * 
 	 * @throws IOException
 	 * @throws CurrencyUnavailableException
+	 * @throws ParseException 
 	 */
 	@Test
-	void testConversion() throws IOException, CurrencyUnavailableException {
-		ExchangeRateTool t = new ExchangeRateTool();
+	void testConversion() throws IOException, CurrencyUnavailableException, ParseException {
+		Forex t = new ForexImpl();
 		t.loadDataFromInputStream(createDummyStream());
 
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+		
 		// Valid
-		Double result = t.convertCurrency(t.parseDate("2021-10-15"), 1D, "USD", "GBP");
+		Double result = t.convertCurrency(dateFormat.parse("2021-10-15"), 1D, "USD", "GBP");
 		assertEquals(0.7271849681089468, result, "Expect 0.7271849681089468");
 
 		// Date doesn't exist, expect exception
 		assertThrows(CurrencyUnavailableException.class, () -> {
-			t.convertCurrency(t.parseDate("2021-10-10"), 1D, "USD", "GBP");
+			t.convertCurrency(dateFormat.parse("2021-10-10"), 1D, "USD", "GBP");
 		});
 
 		// Null rate for AAA, expect exception
 		assertThrows(CurrencyUnavailableException.class, () -> {
-			t.convertCurrency(t.parseDate("2021-10-08"), 1D, "USD", "AAA");
+			t.convertCurrency(dateFormat.parse("2021-10-08"), 1D, "USD", "AAA");
 		});
 	}
 
@@ -100,24 +109,27 @@ class ExchangeRateToolTest {
 	 * 
 	 * @throws IOException
 	 * @throws CurrencyUnavailableException
+	 * @throws ParseException 
 	 */
 	@Test
-	void testCalculateMaximum() throws IOException, CurrencyUnavailableException {
-		ExchangeRateTool t = new ExchangeRateTool();
+	void testCalculateMaximum() throws IOException, CurrencyUnavailableException, ParseException {
+		Forex t = new ForexImpl();
 		t.loadDataFromInputStream(createDummyStream());
 
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
 		// Valid range and currency
-		Double highest = t.calculateHighest(t.parseDate("2021-10-04"), t.parseDate("2021-10-15"), "USD");
+		Double highest = t.calculateHighest(dateFormat.parse("2021-10-04"), dateFormat.parse("2021-10-15"), "USD");
 		assertEquals(1.1636, highest, "Expect 1.1636");
 
 		// Start date is after end date, so no data. Expect exception
 		assertThrows(CurrencyUnavailableException.class, () -> {
-			t.calculateHighest(t.parseDate("2021-10-15"), t.parseDate("2021-10-04"), "USD");
+			t.calculateHighest(dateFormat.parse("2021-10-15"), dateFormat.parse("2021-10-04"), "USD");
 		});
 
 		// No data in range. Expect exception
 		assertThrows(CurrencyUnavailableException.class, () -> {
-			t.calculateHighest(t.parseDate("2021-10-04"), t.parseDate("2021-10-08"), "AAA");
+			t.calculateHighest(dateFormat.parse("2021-10-04"), dateFormat.parse("2021-10-08"), "AAA");
 			assertFalse(true, "Expect exception to be thrown");
 		});
 	}
@@ -127,28 +139,31 @@ class ExchangeRateToolTest {
 	 * 
 	 * @throws IOException
 	 * @throws CurrencyUnavailableException
+	 * @throws ParseException 
 	 */
 	@Test
-	void testCalculateAverage() throws IOException, CurrencyUnavailableException {
-		ExchangeRateTool t = new ExchangeRateTool();
+	void testCalculateAverage() throws IOException, CurrencyUnavailableException, ParseException {
+		Forex t = new ForexImpl();
 		t.loadDataFromInputStream(createDummyStream());
 
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
 		// Valid range and currency, removing nulls
-		Double average1 = t.calculateAverage(t.parseDate("2021-10-04"), t.parseDate("2021-10-15"), "AAA", true);
+		Double average1 = t.calculateAverage(dateFormat.parse("2021-10-04"), dateFormat.parse("2021-10-15"), "AAA", true);
 		assertEquals(1, average1, "Expect 1");
 
 		// Valid range and currency, without removing nulls
-		Double average2 = t.calculateAverage(t.parseDate("2021-10-04"), t.parseDate("2021-10-15"), "AAA", false);
+		Double average2 = t.calculateAverage(dateFormat.parse("2021-10-04"), dateFormat.parse("2021-10-15"), "AAA", false);
 		assertEquals(0.5, average2, "Expect 0.5");
 
 		// Start date is after end date, so no data. Expect exception
 		assertThrows(CurrencyUnavailableException.class, () -> {
-			t.calculateAverage(t.parseDate("2021-10-15"), t.parseDate("2021-10-04"), "USD", true);
+			t.calculateAverage(dateFormat.parse("2021-10-15"), dateFormat.parse("2021-10-04"), "USD", true);
 		});
 
 		// No data in range. Expect exception
 		assertThrows(CurrencyUnavailableException.class, () -> {
-			t.calculateAverage(t.parseDate("2021-10-04"), t.parseDate("2021-10-08"), "AAA", true);
+			t.calculateAverage(dateFormat.parse("2021-10-04"), dateFormat.parse("2021-10-08"), "AAA", true);
 			assertFalse(true, "Expect exception to be thrown");
 		});
 	}

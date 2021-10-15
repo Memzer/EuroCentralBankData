@@ -38,14 +38,14 @@ import com.rr.eucentralbank.model.ExchangeRatesRow;
  * @author Robert Rodrigues
  *
  */
-public class ExchangeRateTool {
+public class ForexImpl implements Forex {
 	
 	//This is the main model holding he data in memory.
 	private ExchangeRates exchangeRates;
 	
 	private Properties config;
 	
-	public ExchangeRateTool() {
+	public ForexImpl() {
 		config = new Properties();
 		try(FileInputStream in = new FileInputStream("config.properties")) {
 			config.load(in);
@@ -60,6 +60,7 @@ public class ExchangeRateTool {
 	 * @param date a {@link Date} object to search by
 	 * @return {@link HashMap} containing all available currencies and their respective rates
 	 */
+	@Override
 	public Map<String, Double> readDataForDate(Date date) {
 		Optional<ExchangeRatesRow> rowData = exchangeRates.getRowData().stream().filter(e -> e.getDate().equals(date)).findAny();
 		if(rowData.isPresent()) {
@@ -81,6 +82,7 @@ public class ExchangeRateTool {
 	 * @return Double value converted to the target currency
 	 * @throws CurrencyUnavailableException
 	 */
+	@Override
 	public Double convertCurrency(Date date, Double amount, String sourceCurrency, String targetCurrency) throws CurrencyUnavailableException {
 		Map<String, Double> row = readDataForDate(date);
 		Double sourceToEuro = row.get(sourceCurrency);
@@ -105,6 +107,7 @@ public class ExchangeRateTool {
 	 * @return Double the highest exchange rate within the given time period
 	 * @throws CurrencyUnavailableException
 	 */
+	@Override
 	public Double calculateHighest(Date start, Date end, String currency) throws CurrencyUnavailableException {
 		DoubleSummaryStatistics statistics = statistics(start, end, currency, true);
 		if(statistics.getCount() == 0) {
@@ -129,6 +132,7 @@ public class ExchangeRateTool {
 	 * @return Double the highest exchange rate within the given time period
 	 * @throws CurrencyUnavailableException 
 	 */
+	@Override
 	public Double calculateAverage(Date start, Date end, String currency, boolean removeNulls) throws CurrencyUnavailableException {
 		DoubleSummaryStatistics statistics = statistics(start, end, currency, removeNulls);
 		if(statistics.getCount() == 0) {
@@ -171,6 +175,7 @@ public class ExchangeRateTool {
 	 * @param zipFile The input zip file which is expected to contain a csv file of the currency data.
 	 * @throws IOException
 	 */
+	@Override
 	public void loadDataFromZip(File zipFile) throws IOException {
 		try(InputStream in = new FileInputStream(zipFile)) {
 			processInputStream(in);
@@ -182,6 +187,7 @@ public class ExchangeRateTool {
 	 * 
 	 * @throws IOException
 	 */
+	@Override
 	public void loadDataLiveSite() throws IOException {
 		try(InputStream in = new BufferedInputStream(new URL(config.getProperty("zip.url")).openStream())) {
 			processInputStream(in);
@@ -193,6 +199,7 @@ public class ExchangeRateTool {
 	 * 
 	 * @throws IOException
 	 */
+	@Override
 	public void loadDataFromInputStream(InputStream in) throws IOException {
 		processInputStream(in);
 	}
@@ -249,7 +256,7 @@ public class ExchangeRateTool {
 			Date date = parseDate(csvRecord.get(0));
 			if(date != null) {
 				//Store the actual exchange rates into the model
-				List<Double> recordAsListOfDouble = convertFromString(recordAsList, ExchangeRateTool::parseDouble);
+				List<Double> recordAsListOfDouble = convertFromString(recordAsList, ForexImpl::parseDouble);
 
 				ExchangeRatesRow rowData = new ExchangeRatesRow(date, recordAsListOfDouble);
 				
