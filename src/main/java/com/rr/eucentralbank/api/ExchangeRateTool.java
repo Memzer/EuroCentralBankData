@@ -40,9 +40,6 @@ import com.rr.eucentralbank.model.ExchangeRatesRow;
  */
 public class ExchangeRateTool {
 	
-	//Dates in the CSV are in this format
-	private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-	
 	//This is the main model holding he data in memory.
 	private ExchangeRates exchangeRates;
 	
@@ -295,6 +292,7 @@ public class ExchangeRateTool {
 	 * @return converted {@link Date} object 
 	 */
 	public Date parseDate(String dateStr) {
+		SimpleDateFormat dateFormat = new SimpleDateFormat(config.getProperty("date.format"));
 		try {
 			return dateFormat.parse(dateStr);
 		} catch (ParseException e) {
