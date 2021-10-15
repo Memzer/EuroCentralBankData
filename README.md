@@ -2,13 +2,13 @@
 API which reads the EU central bank data and exposes various useful functions.
 
 ### Requirements
-The API uses Java 11.
+The API uses Java 11, and Maven.
 
 ### Running tests
 Execute `mvn test`
 
 ### Building
-Execute `mvn build` to generate the JAR file
+Execute `mvn install` to generate the JAR file
 
 ### Example Usage
 The data is expected to be in CSV format, and wrapped in a ZIP file. 
