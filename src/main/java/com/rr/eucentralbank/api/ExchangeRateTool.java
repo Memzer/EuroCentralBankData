@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
@@ -44,6 +45,17 @@ public class ExchangeRateTool {
 	
 	//This is the main model holding he data in memory.
 	private ExchangeRates exchangeRates;
+	
+	private Properties config;
+	
+	public ExchangeRateTool() {
+		config = new Properties();
+		try(FileInputStream in = new FileInputStream("config.properties")) {
+			config.load(in);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 	
 	/**
 	 * Allows an API caller to retrieve the reference rate data for a given Date for all available Currencies.
@@ -174,7 +186,7 @@ public class ExchangeRateTool {
 	 * @throws IOException
 	 */
 	public void loadDataLiveSite() throws IOException {
-		try(InputStream in = new BufferedInputStream(new URL("https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist.zip").openStream())) {
+		try(InputStream in = new BufferedInputStream(new URL(config.getProperty("zip.url")).openStream())) {
 			processInputStream(in);
 		}
 	}
@@ -200,7 +212,7 @@ public class ExchangeRateTool {
 			//Although we expect a single csv file in the zip, looping though available files
 			//will catch occasions where there are multiple files.
 			while((zipEntry = zipInStream.getNextEntry()) != null) {
-				if(zipEntry.getName().equalsIgnoreCase("eurofxref-hist.csv")) {
+				if(zipEntry.getName().equalsIgnoreCase(config.getProperty("csv.filename"))) {
 					Reader reader = new InputStreamReader(zipInStream);
 					CSVParser parser = new CSVParser(reader, CSVFormat.DEFAULT);
 					
