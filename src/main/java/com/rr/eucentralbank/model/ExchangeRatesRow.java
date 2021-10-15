@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Class representing a single row of data with the Date field separated out from the rates data
@@ -23,10 +24,16 @@ public class ExchangeRatesRow {
 		this.rates = exchangeRate;
 	}
 	
+	/**
+	 * Converts the current row to a Map<String, Double>
+	 * 
+	 * @return Map where the key is the currency name and the value is the exchange rate
+	 */
 	public Map<String, Double> toMap() {
 		Map<String, Double> map = new HashMap<>();
-		for(int i=0; i<parent.getCurrencyNames().size(); i++) {
-			map.put(parent.getCurrencyNames().get(i), rates.get(i));
+		List<String> currencyNames = parent.streamNames().collect(Collectors.toList());
+		for(int i=0; i<currencyNames.size(); i++) {
+			map.put(currencyNames.get(i), rates.get(i));
 		}
 		return map;
 	}
@@ -41,9 +48,6 @@ public class ExchangeRatesRow {
 	
 	public Date getDate() {
 		return date;
-	}
-	public List<Double> getRates() {
-		return rates;
 	}
 	
 }

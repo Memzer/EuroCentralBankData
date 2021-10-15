@@ -2,6 +2,7 @@ package com.rr.eucentralbank.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * This model holds the currency data. 
@@ -26,6 +27,24 @@ public class ExchangeRates {
 		super();
 		this.currencyNames = currencyNames;
 	}
+	
+	/**
+	 * Returns a stream of the currency names
+	 * 
+	 * @return Stream of names
+	 */
+	public Stream<String> streamNames() {
+		return currencyNames.stream();
+	}
+	
+	/**
+	 * Returns a stream of the row data
+	 * 
+	 * @return Stream of {@link ExchangeRatesRow}
+	 */
+	public Stream<ExchangeRatesRow> streamRows() {
+		return rowData.stream();
+	}
 
 	/**
 	 * Adds a row to the data. Also sets a reference to the parent which holds the currency names
@@ -34,14 +53,6 @@ public class ExchangeRates {
 	public void addRowData(ExchangeRatesRow row) {
 		row.parent = this;
 		rowData.add(row);
-	}
-
-	public List<String> getCurrencyNames() {
-		return currencyNames;
-	}
-
-	public List<ExchangeRatesRow> getRowData() {
-		return rowData;
 	}
 	
 }

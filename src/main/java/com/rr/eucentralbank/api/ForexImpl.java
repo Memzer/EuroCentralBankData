@@ -62,7 +62,7 @@ public class ForexImpl implements Forex {
 	 */
 	@Override
 	public Map<String, Double> readDataForDate(Date date) {
-		Optional<ExchangeRatesRow> rowData = exchangeRates.getRowData().stream().filter(e -> e.getDate().equals(date)).findAny();
+		Optional<ExchangeRatesRow> rowData = exchangeRates.streamRows().filter(e -> e.getDate().equals(date)).findAny();
 		if(rowData.isPresent()) {
 			return rowData.get().toMap();
 		} else {
@@ -157,7 +157,7 @@ public class ForexImpl implements Forex {
 	 * @return List<Double> the exchanges rate within the given time period
 	 */
 	public DoubleSummaryStatistics statistics(Date start, Date end, String currency, boolean removeNulls) {
-		return exchangeRates.getRowData().stream()
+		return exchangeRates.streamRows()
 			.filter(r -> r.getDate().after(start) || r.getDate().equals(start))
 			.filter(r -> r.getDate().before(end) || r.getDate().equals(end))
 			//At this point we have all ExchangeRateRows between the dates (inclusive)
