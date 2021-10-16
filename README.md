@@ -13,12 +13,12 @@ Execute `mvn install` to generate the JAR file
 ### Example Usage
 The data is expected to be in CSV format, and wrapped in a ZIP file. 
 ```
-	ExchangeRateTool t = new ExchangeRateTool();
+	Forex t = new ForexImpl();
 	t.loadDataLiveSite();
 ```
 If the ZIP file is already downloaded, it can be loaded as follows:
 ```
-	ExchangeRateTool t = new ExchangeRateTool();
+	Forex t = new ForexImpl();
 	t.loadDataFromZip(new File(pathToFile));
 ```
 
